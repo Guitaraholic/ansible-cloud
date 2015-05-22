@@ -1,0 +1,53 @@
+---
+
+# Setting up the Server Dependencies
+- name: Ensure server general bits are installed
+  action: apt pkg={{ item }} state=installed update_cache=true cache_valid_time=2592000
+  with_items:
+    - ufw
+
+
+# Setup firewall to manage Access
+- name: Block connections to Apps from world
+  ufw: rule=deny port={{ item }}
+  with_items:
+  - "{{ sonarr_port }}"
+  - "{{ couchpotato_port }}"
+  - "{{ headphones_port }}"
+  - "{{ plex_port }}"
+  - "{{ sabnzbd_port }}"
+  - "{{ deluge_port }}"
+  - "{{ transmission_port }}"
+  - "{{ btsync_port }}"
+  notify: restart ufw
+
+# Setup acess only via localhost so all access comes via NGINX
+- name: Allow conncetions to Apps from localhost
+  ufw: rule=allow port={{ item }} src=127.0.0.1
+  with_items:
+  - "{{ sonarr_port }}"
+  - "{{ couchpotato_port }}"
+  - "{{ headphones_port }}"
+  - "{{ plex_port }}"
+  - "{{ sabnzbd_port }}"
+  - "{{ deluge_port }}"
+  - "{{ transmission_port }}"
+  - "{{ btsync_port }}"
+  notify: restart ufw
+
+  # Obvious stuff
+- name: Make sure the expected ports are open! 
+  ufw: rule=allow port={{ item }} 
+  with_items:
+  - 22
+  - 80
+  - 443
+  - 7285
+  
+  notify: restart ufw
+
+- name: Default ufw to allow connections.
+  command: "ufw default allow"
+
+- name: Ensure ufw is running.
+  service: name=ufw state=started

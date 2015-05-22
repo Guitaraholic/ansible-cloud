@@ -1,0 +1,26 @@
+---
+
+# Setting up the Server Dependencies
+- name: Ensure server general bits are installed
+  action: apt pkg={{ item }} state=installed update_cache=true 
+  with_items:
+    - tightvncserver
+    - expect
+    - vim
+    - curl
+    - fail2ban
+    - ufw
+    - xauth
+
+- name: check current timezone
+  shell: cat /etc/timezone
+  register: get_timezone
+  changed_when: False
+
+# This Needs Work
+#- name: set /etc/timezone
+#  shell: echo "{{ timezone }}" > /etc/timezone
+#  when: '"{{ timezone }}" not in get_timezone.stdout'
+#  shell:  /usr/sbin/dpkg-reconfigure --frontend noninteractive tzdata
+#  changed_when: False
+

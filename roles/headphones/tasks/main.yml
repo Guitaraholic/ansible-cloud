@@ -1,0 +1,58 @@
+---
+# Dependencies
+- name: Ensure couchpotato dependencies are installed
+  action: apt pkg={{ item }} state=installed
+  with_items:
+    - git-core
+    - python2.7
+
+# Download source
+- name: Clone headphones
+  command: git clone {{ repo }} {{ source_location }} creates={{ source_location }}
+
+# Setup env
+- name: Ensure user group for the applications exists
+  group: name={{ user_group }} state=present
+- name: Ensure headphones user is present
+  user: name={{ user }} group={{ user_group }}
+        home={{ headphones_home }} state=present
+        comment="Headphones"
+- name: Ensure Headphones home permissions are set correctly
+  file: path={{ headphones_home }} owner={{ user }}
+        group={{ user_group }} recurse=yes state=directory
+
+- name: Ensure Headphones init script is in the correct place
+  command: cp {{ source_location }}/init-scripts/init.ubuntu /etc/init.d/headphones
+           creates=/etc/init.d/eadphones
+  register: copied
+- name: Set permissions on init script
+  command: "{{ item }}"
+  with_items:
+    - chown root:root /etc/init.d/headphones
+    - chmod 744 /etc/init.d/headphones
+  when: copied|changed
+
+- name: Ensure Headphones defaults are present
+  template: src=defaults.j2 dest=/etc/default/headphones
+            owner=root group=root mode=0644
+  notify: restart headphones
+
+- name: Configure Headphones
+  ini_file: dest={{ config_file }} owner={{ user }} group={{ user_group }}
+            section={{ item.section }} option={{ item.option }}
+            value={{ item.value }}
+  with_items:
+    - { section: "General", option: "http_port", value: "{{ headphones_port }}" }
+    - { section: "General", option: "http_host", value: "{{ host }}" }
+    - { section: "General", option: "http_root", value: "{{ headphones_webroot }}" }
+    - { section: "General", option: "http_proxy", value: "{{ proxy }}" }
+  ignore_errors: yes
+
+  notify: restart headphones
+
+- name: Ensure Headphones is running
+  service: name=headphones state=started 
+  
+
+
+

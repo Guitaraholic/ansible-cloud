@@ -1,0 +1,8 @@
+---
+user: headphones
+config_file: "{{ headphones_home }}/config.ini"
+repo: git://github.com/rembo10/headphones.git
+source_location: "{{ headphones_home }}/.headphones"
+proxy: 1
+
+

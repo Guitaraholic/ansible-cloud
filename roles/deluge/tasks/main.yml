@@ -1,0 +1,44 @@
+---
+
+
+# Setup deluge
+- name: Ensure user group for the applications exists
+  group: name={{ user_group }} state=present
+- name: Ensure Deluge user is present
+  user: name={{ user }} group={{ user_group }}
+        home={{ deluge_home }} state=present
+        comment="Deluge"
+- name: Ensure Deluge home permissions are set correctly
+  file: path={{ deluge_home }} owner={{ user }}
+        group={{ user_group }} recurse=yes state=directory
+
+
+- name: Add deluge ppa key
+  action: apt_repository repo="deb http://ppa.launchpad.net/deluge-team/ppa/ubuntu utopic main" state=present update_cache=true
+
+- name: install deluge dependencies 
+  action: apt pkg={{ item }} state=installed
+  with_items:
+    - deluge
+    - deluged
+    - deluge-web
+
+# Configure Templates
+- name: ensure deluged daemon startup script exists
+  template: src=deluged.conf.j2 dest=/etc/init/deluged.conf owner=root group=root mode=0755
+  notify: restart deluged 
+
+- name: ensure deluged webui script exists
+  template: src=deluge-web.conf.j2 dest=/etc/init/deluge-web.conf owner=root group=root mode=0755
+  notify: restart deluged-web 
+
+
+# Start
+- name: ensure deluged daemon is started
+  service: name=deluged state=started
+
+- name: ensure deluged webui is started
+  service: name=deluge-web state=started
+
+- name: ensure log directory exists
+  file: dest=/var/log/deluge owner={{ user }} group={{ user_group }} mode=0775 recurse=yes state=directory

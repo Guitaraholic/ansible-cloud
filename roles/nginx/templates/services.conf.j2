@@ -1,0 +1,101 @@
+{% if sabnzbd_include %}
+# Sabnzbd
+location {{ sabnzbd_webroot }} {
+    proxy_pass        http://localhost:{{ sabnzbd_port }}/sabnzbd;
+    include proxy-control.conf;
+
+}
+{% endif %}
+
+{% if sonarr_include %}
+# Sonaar
+location {{ sonarr_webroot }} {
+    proxy_pass        http://localhost:{{ sonarr_port }};
+    include proxy-control.conf;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+{% endif %}
+
+{% if couchpotato_include %}
+# Couchpotato
+location {{ couchpotato_webroot }} {
+    proxy_pass        http://localhost:{{ couchpotato_port }};
+    include proxy-control.conf;
+    proxy_set_header  Host localhost:8020;
+    proxy_redirect    default;
+
+}
+{% endif %}
+
+{% if transmission_include %}
+# Transmission
+location {{ transmission_webroot }} {
+    proxy_pass http://localhost:{{ transmission_port }};
+    proxy_pass_header X-Transmission-Session-Id;
+    include proxy-control.conf;
+
+}
+{% endif %}
+
+{% if deluge_include %}
+# Deluge
+location {{ deluge_webroot }} {
+    proxy_pass        http://localhost:{{ deluge_port }};
+    proxy_set_header  X-Deluge-Base "{{ deluge_webroot }}";
+    include proxy-control.conf;
+
+}
+{% endif %}
+
+{% if plex_include %}
+# Plex
+location {{ plex_webroot }} {
+    proxy_pass http://localhost:{{ plex_port }};
+    proxy_set_header Host plex.tv;
+
+    proxy_set_header    Host            $http_host;
+    proxy_set_header    X-Real-IP       $remote_addr;
+    proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_redirect off;
+
+    ## Required for Websockets
+    proxy_http_version      1.1;
+    proxy_set_header        Upgrade         $http_upgrade;
+    proxy_set_header        Connection      "upgrade";
+
+    include proxy-control.conf;
+  
+}
+{% endif %}
+
+{% if headphones_include %}
+# Headphones
+  location {{ headphones_webroot }} {
+    proxy_pass  http://localhost:{{ headphones_port }};
+    include proxy-control.conf;
+    proxy_set_header        Host            $http_host;
+    proxy_set_header        X-Real-IP       $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+
+}
+{% endif %}
+
+
+{% if btsync_include %}
+# BTSync
+    location {{ btsync_webroot }} {
+        proxy_pass http://localhost:{{ btsync_port }};
+        proxy_set_header    Host            $http_host;
+        proxy_set_header    X-Real-IP       $remote_addr;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+    }
+{% endif %}
+
+location = /favicon.ico {
+            alias    {{ nginx_home }}/favicon.ico;
+        }
+
+

@@ -1,0 +1,30 @@
+---
+# Main run file to build the Cloud Server
+- hosts: all
+  remote_user: vagrant
+  sudo: yes
+  vars_files:
+    - vars.yml
+
+# Run the following roles 
+
+  roles:
+    - server
+    - nginx
+    - couchpotato
+    - headphones
+    - sabnzbd
+    - sonarr
+    - plex
+    - ufw
+
+
+
+# Need Further Work
+    #- deluge
+    #- transmission
+
+# To Be Added
+    #- ghost
+    #- btsync
+    #- splunk

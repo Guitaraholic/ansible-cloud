@@ -1,0 +1,75 @@
+---
+# Dependencies
+- name: Ensure couchpotato dependencies are installed
+  action: apt pkg={{ item }} state=installed
+  with_items:
+    - git-core
+    - python2.7
+
+# Download source
+- name: Clone couchpotato
+  command: git clone {{ repo }} {{ source_location }} creates={{ source_location }}
+
+# Setup env
+- name: Ensure user group for the applications exists
+  group: name={{ user_group }} state=present
+- name: Ensure couchpotato user is present
+  user: name={{ user }} group={{ user_group }}
+        home={{ couchpotato_home }} state=present
+        comment="Couchpotato"
+- name: Ensure couchpotato home permissions are set correctly
+  file: path={{ couchpotato_home }} owner={{ user }}
+        group={{ user_group }} recurse=yes state=directory
+
+- name: Ensure couchpotato init script is in the correct place
+  command: cp {{ source_location }}/init/ubuntu /etc/init.d/couchpotato
+           creates=/etc/init.d/couchpotatocd 
+  register: copied
+- name: Set permissions on init script
+  command: "{{ item }}"
+  with_items:
+    - chown root:root /etc/init.d/couchpotato
+    - chmod 744 /etc/init.d/couchpotato
+  when: copied|changed
+
+- name: Ensure couchpotato defaults are present
+  template: src=defaults.j2 dest=/etc/default/couchpotato
+            owner=root group=root mode=0644
+  notify: restart couchpotato
+
+# Configure
+- name: Configure couchpotato
+  ini_file: dest={{ config_file }} owner={{ user }} group={{ user_group }}
+            section={{ item.section }} option={{ item.option }}
+            value={{ item.value }}
+  with_items:
+    - { section: "core", option: "port", value: "{{ couchpotato_port }}" }
+    - { section: "core", option: "host", value: "{{ host }}" }
+    - { section: "core", option: "url_base", value: "{{ couchpotato_webroot }}" }
+  ignore_errors: yes
+
+  notify:
+        - restart couchpotato
+#- name: Configure pushover
+#  ini_file: dest={{ config_file }}
+#            section={{ item.section }} option={{ item.option }}
+#            value={{ item.value }}
+#  with_items:
+#    - { section: "pushover", option: "user_key", value: "{{ pushover_user_key }}" }
+#    - { section: "pushover", option: "enabled", value: 1 }
+#  when: pushover_user_key != ""
+#- name: Configure trakt
+#  ini_file: dest={{ config_file }}
+#            section={{ item.section }} option={{ item.option }}
+#            value={{ item.value }}
+#  with_items:
+#    - { section: "trakt", option: "automation_username", value: "{{ trakt_username }}" }
+#    - { section: "trakt", option: "automation_api_key", value: "{{ trakt_api_key }}" }
+#    - { section: "trakt", option: "automation_enabled", value: 1 }
+#    - { section: "trakt", option: "notification_enabled", value: 1 }
+#  when: trakt_username != "" and trakt_api_key != ""
+
+# Start it
+- name: Ensure couchpotato is running
+  service: name=couchpotato state=started
+

@@ -1,0 +1,65 @@
+---
+# Install
+- name: Ensure nginx is installed
+  apt: pkg={{ item }} state=installed update_cache=true 
+  with_items:
+    - nginx
+    - python-passlib  # needed for htpasswd
+    - htop  # it's handy
+
+# Configure
+- name: Configure nginx.conf
+  template: src=nginx.conf.j2 dest={{ nginx_home }}/nginx.conf
+            owner=root group=root mode=0644
+  notify: restart nginx
+- name: Configure nginx services.conf
+  template: src=services.conf.j2 dest={{ nginx_home }}/services.conf
+            owner=root group=root mode=0644
+  notify: restart nginx
+- name: Configure nginx proxy-control.conf
+  template: src=proxy-control.conf.j2 dest={{ nginx_home }}/proxy-control.conf
+            owner=root group=root mode=0644
+  notify: restart nginx
+- name: Configure nginx auth-basic.conf
+  template: src=auth-basic.conf.j2 dest={{ nginx_home }}/auth-basic.conf
+            owner=root group=root mode=0644
+  notify: restart nginx
+
+# Setting up HTTP PASSWORD Value
+- stat: path=/etc/nginx/.htpasswd
+  register: htpasswd_exit
+
+
+- name: Configure nginx .htpasswd users file
+  htpasswd: path={{ nginx_home }}/.htpasswd name={{ htpasswd_name }}
+            password={{ htpasswd_password }}
+            owner=root group=root mode=0644
+  when: htpasswd_name != "" and htpasswd_password != ""
+
+
+# Setup SSL - Messy as HELL!!!!! 
+- name: Ensure certificates  dir exists.
+  file: path="{{ nginx_home }}/certificates" state=directory owner=root group=root mode=0700
+
+- name: Copy Certificates
+  copy: src=../../keys/{{ nginx_ssl_cert }} dest={{ nginx_home }}/certificates/{{ nginx_ssl_cert }}
+            owner=root group=root mode=0700
+  notify: restart nginx
+
+- name: Copy Key
+  copy: src=../../keys/{{ nginx_ssl_key }} dest={{ nginx_home }}/certificates/{{ nginx_ssl_key }}
+            owner=root group=root mode=0700
+  notify: restart nginx
+
+# Set Global Favicon
+- name: Set Global Faviconx
+  copy: src=favicon.ico dest={{ nginx_home }}/favicon.ico
+            owner=root group=root mode=0700
+  notify: restart nginx
+
+
+# Start it
+- name: Ensure nginx is running
+  service: name=nginx state=running enabled=yes
+
+

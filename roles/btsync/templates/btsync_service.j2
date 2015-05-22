@@ -1,0 +1,12 @@
+# btsync
+#
+
+description	"BTSync"
+
+start on startup
+stop on runlevel [!023456]
+
+#console output
+
+exec sudo -u ubuntu {{ bystnc_home }}/btsync --nodaemon 2>&1 | logger -t "btsync"
+

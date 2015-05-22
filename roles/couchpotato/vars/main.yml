@@ -1,0 +1,5 @@
+---
+user: couchpotato
+config_file: "{{ couchpotato_home }}/config.ini"
+repo: git://github.com/RuudBurger/CouchPotatoServer.git
+source_location: "{{ couchpotato_home }}/.couchpotato"

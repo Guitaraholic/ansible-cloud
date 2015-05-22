@@ -1,0 +1,29 @@
+---
+
+# Setup env
+- name: Ensure user group for the applications exists
+  group: name={{ user_group }} state=present
+- name: Ensure BTSync user is present
+  user: name={{ user }} group={{ user_group }}
+        home={{ btsync_home }} state=present
+        comment="BTSync"
+- name: Ensure BTSync home permissions are set correctly
+  file: path={{ btsync_home }} owner={{ user }}
+        group={{ user_group }} recurse=yes state=directory
+
+
+- name: Add bysync ppa key
+  action: apt_repository repo="ppa:tuxpoldo/btsync" state=present update_cache=true
+
+- name: install btsync dependencies 
+  action: apt pkg={{ item }} state=installed
+  with_items:
+    - btsync
+
+
+- name: Start btsync service
+  action: service name=btsync state=started
+
+
+
+

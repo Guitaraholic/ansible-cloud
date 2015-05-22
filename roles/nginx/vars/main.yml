@@ -1,0 +1,3 @@
+nginx_worker_processes: 4
+nginx_ssl_cert: "{{ ssl_name }}.crt"
+nginx_ssl_key: "{{ ssl_name }}.key"

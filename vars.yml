@@ -1,0 +1,64 @@
+
+localhost: 127.0.0.1
+host: 127.0.0.1
+#host: 176.9.90.111
+
+# General Settings
+server_name: "test.cloud"
+ssl_name: "cloud"
+
+
+# These passwords should probably be somewhere else
+htpasswd_name: admin
+htpasswd_password: "password"
+
+# Dont change this 
+nginx_home: /etc/nginx
+
+# set the include_* vars to false if you don't use that service
+sabnzbd_include: true
+sabnzbd_port: 8000
+sabnzbd_webroot: "/sabnzbd"
+sabnzbd_home: /opt/sabnzbd
+sabnzbd_script_dir: "{{ sabnzbd_home }}/scripts"
+usenet_download_dir:  /opt/sabnzbd/Downloads/complete
+
+sonarr_include: true
+sonarr_port: 8989
+sonarr_webroot: "/sonarr"
+sonarr_home: /opt/NzbDrone
+
+couchpotato_include: true
+couchpotato_port: 8020
+couchpotato_webroot: "/couchpotato"
+couchpotato_home: /opt/couchpotato
+
+headphones_include: true
+headphones_port: 8181
+headphones_webroot: "/headphones"
+headphones_home: /opt/headphones
+
+plex_include: true
+plex_alt: 7285
+plex_port: 32400
+plex_webroot: "/"
+
+deluge_include: true
+deluge_port: 8112
+deluge_webroot: "/deluge"
+deluge_home: /opt/deluge
+
+transmission_include: true
+transmission_port: 8030
+transmission_webroot: "/transmission"
+transmission_home: /opt/transmission
+transmission_download_dir: /var/lib/transmission-daemon/downloads
+transmission_incomplete_download_dir: /var/lib/transmission-daemon/incomplete
+
+btsync_include: true
+btsync_port: 8888
+btsync_webroot: "/btsync"
+btsync_home: /opt/btsync
+
+# Main Server owner
+user_group: cloud

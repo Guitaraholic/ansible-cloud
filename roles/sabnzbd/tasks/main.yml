@@ -1,0 +1,43 @@
+---
+# Setup env
+- name: Ensure sabnzbd is installed
+  action: apt pkg=sabnzbdplus state=installed
+
+- name: Ensure user group for the applications exists
+  group: name={{ user_group }} state=present
+- name: Ensure sabnzbd user is present
+  user: name={{ user }} group={{ user_group }}
+        home={{ sabnzbd_home }} state=present comment="Sabnzbd"
+- name: Ensure sabnzbd download dir exists
+  file: path={{ usenet_download_dir }} state=directory
+        owner={{ user }} group={{ user_group }} mode=0775
+- name: Ensure permissions for sabnzbd home are set correctly
+  file: path={{ sabnzbd_home }}
+        owner={{ user }} group={{ user_group }}
+        state=directory recurse=yes mode=0775
+
+- name: Install sabnzbd defaults
+  template: src=defaults.j2 dest=/etc/default/sabnzbdplus
+            owner=root group=root mode=0644
+
+# Configure
+- name: Delete invalid __version__ line from sabnzbd config
+  lineinfile: dest="{{ sabnzbd_home}}/config.ini"
+              regexp="__version__ = (.)*"
+              state=absent
+- name: Configure sabnzbd
+  ini_file: dest="{{ sabnzbd_home }}/config.ini"
+            owner={{ user }} group={{ user_group }}
+            section={{ item.section }} option={{ item.option }}
+            value={{ item.value }}
+  with_items:
+  - { section: "misc", option: "host", value: "{{ host }}" }
+  - { section: "misc", option: "port", value: "{{ sabnzbd_port }}" }
+  - { section: "misc", option: "complete_dir", value: "{{ usenet_download_dir }}" }
+  - { section: "misc", option: "script_dir", value: "{{ sabnzbd_script_dir }}" }
+  ignore_errors: yes
+
+
+# Start it
+- name: Start sabnzbd
+  service: name=sabnzbdplus state=started 

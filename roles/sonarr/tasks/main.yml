@@ -1,0 +1,48 @@
+---
+
+#Setup Sonarr Repository
+- name: Ensure sonarr repository is present
+  apt_repository: repo="deb http://apt.sonarr.tv/ master main"
+                  state=present
+
+- name: Ensure sonarr key is present
+  apt_key: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFDA5DFFC state=present
+  register: result
+
+- name: Ensure sonarr dependencies are installed
+  apt: pkg={{ item }} state=installed update_cache=true 
+  with_items:
+    - mono-runtime
+    - nzbdrone
+    - mediainfo
+    - sqlite3
+
+# Setup User
+- name: Ensure user group for the applications exists
+  group: name={{ user_group }} state=present
+- name: Ensure sonarr user is present
+  user: name={{ user }} group={{ user_group }}
+        home={{ sonarr_home }} state=present
+        comment="sonarr"
+
+- name: Ensure sonarr config dir exists.
+  file: path="{{ sonarr_home }}/.config/NzbDrone" state=directory
+
+- name: Ensure sonarr home permissions are set correctly
+  file: path={{ sonarr_home }} owner={{ user }}
+        group={{ user_group }} recurse=yes state=directory
+
+
+- name: Install sonarr config
+  template: src=config.xml.j2 dest="{{ sonarr_home }}/.config/NzbDrone/config.xml"
+  notify: restart sonarr
+
+- name: Install sonarr upstart script (ubuntu 14.04 or earlier)
+  template: src=sonarr.conf.j2 dest=/etc/init/sonarr.conf
+            owner=root group=root mode=0644
+  notify: restart sonarr
+
+
+
+- name: Ensure sonarr is running
+  service: name=sonarr state=started
