@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Cloud
 -----
 
@@ -61,3 +62,7 @@ Transmission ( WIP )
 
 Transmission is at https://your_server/transmission
 
+=======
+# ansible-cloud
+Ansible Roles to create a private cloud - includes Nginx as a frontend, Plex, CouchPotato, Headphones, Sabnzbd, Sonarr. 
+>>>>>>> 4601d92... Initial commit
